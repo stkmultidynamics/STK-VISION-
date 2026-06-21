@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STK Vision</title>
+<meta name="description" content="STK Vision — L'orchestrateur pour l'industrie.">
+<meta name="copyright" content="© 2026 STK Multidynamics — Tous droits réservés. Paradigme et technologies protégés.">
+<style>
+  :root{ --cyan:#29b6ff; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; background:#02060f; overflow:hidden;
+    font-family:'Segoe UI',Helvetica,Arial,sans-serif; color:#eafdff;
+    -webkit-user-select:none; -moz-user-select:none; user-select:none;
+    -webkit-touch-callout:none; }
+  .stage{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
+  video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .veil{ position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 40%, transparent 0%, rgba(2,6,15,.45) 78%),
+              linear-gradient(180deg, rgba(2,6,15,.3) 0%, transparent 30%, transparent 62%, rgba(2,6,15,.7) 100%);
+    transition:opacity .6s; }
+
+  /* carte-titre : apparaît, PUIS s'efface vite pour laisser la vidéo respirer */
+  .titlecard{ position:relative; z-index:3; text-align:center; padding:24px;
+    opacity:0; transition:opacity .5s ease; }
+  .titlecard.show{ opacity:1; }
+  .titlecard.hide{ opacity:0; }
+  .eyebrow{ font-family:ui-monospace,monospace; font-size:14px; letter-spacing:.5em;
+    color:#7fc4ff; text-transform:uppercase; margin-bottom:14px; }
+  h1{ font-size:clamp(34px,7vw,84px); font-weight:800; letter-spacing:.02em; line-height:1;
+    background:linear-gradient(92deg,#fff,#bfe6ff 45%,var(--cyan));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 4px 30px rgba(0,150,255,.45)); }
+  .tag{ font-size:clamp(15px,2.2vw,21px); color:#a8cce6; margin-top:16px; }
+
+  /* bouton Entrer : discret, persistant, en bas */
+  .enter{ position:fixed; left:50%; bottom:40px; transform:translateX(-50%); z-index:4; cursor:pointer;
+    font:600 15px/1 'Segoe UI',sans-serif; letter-spacing:.12em; text-transform:uppercase;
+    color:#02060f; background:var(--cyan); border:0; border-radius:999px; padding:15px 38px;
+    box-shadow:0 0 30px rgba(41,182,255,.5); text-decoration:none;
+    opacity:0; transition:opacity .6s, transform .2s, filter .2s; }
+  .enter.show{ opacity:.92; }
+  .enter:hover{ filter:brightness(1.12); transform:translateX(-50%) translateY(-3px); opacity:1; }
+
+  .sound{ position:fixed; right:18px; bottom:16px; z-index:4; cursor:pointer;
+    font:600 12px ui-monospace,monospace; letter-spacing:.08em; color:#cfeaf6;
+    background:rgba(10,22,44,.5); border:1px solid rgba(41,182,255,.4); border-radius:10px; padding:9px 14px; }
+  .ip{ position:fixed; left:0; right:0; bottom:8px; z-index:3; text-align:center;
+    font-size:11px; color:#5b7da6; letter-spacing:.04em; pointer-events:none; }
+</style>
+</head>
+<body oncontextmenu="return false">
+  <div class="stage">
+    <video id="v" autoplay muted loop playsinline preload="auto">
+      <source src="teaser.mp4" type="video/mp4">
+    </video>
+    <div class="veil" id="veil"></div>
+    <div class="titlecard" id="card">
+      <div class="eyebrow">STK Multidynamics</div>
+      <h1>STK VISION</h1>
+      <div class="tag">L'orchestrateur pour l'industrie.</div>
+    </div>
+  </div>
+  <!-- Quand le site sera prêt : href="site-github.html" -->
+  <a class="enter" id="enter" href="site-github.html">Entrer →</a>
+  <button class="sound" id="snd">🔇 Son</button>
+  <div class="ip">© 2026 STK Multidynamics — Tous droits réservés.</div>
+
+<script>
+(function(){
+  "use strict";
+  var card=document.getElementById('card'), veil=document.getElementById('veil'),
+      enter=document.getElementById('enter'), snd=document.getElementById('snd'),
+      v=document.getElementById('v');
+
+  // ── carte-titre : courte apparition puis effacement rapide ──
+  setTimeout(function(){ card.classList.add('show'); }, 250);   // entre
+  setTimeout(function(){                                        // sort vite
+    card.classList.remove('show'); card.classList.add('hide');
+    veil.style.opacity='.25';                                  // voile s'allège : vidéo plein écran
+    enter.classList.add('show');                               // bouton Entrer dispo
+  }, 2300);
+
+  // ── son au 1er geste (politique autoplay) ──
+  snd.addEventListener('click', function(){
+    v.muted=!v.muted; snd.textContent=v.muted?'🔇 Son':'🔊 Son'; if(!v.muted) v.play();
+  });
+
+  // ── protection : clic droit + double-clic + raccourcis d'inspection bloqués ──
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); }, {capture:true});
+  document.addEventListener('dblclick', function(e){ e.preventDefault(); }, {capture:true});
+  // coupe la sélection de texte (le double-clic sélectionne un mot sinon)
+  document.addEventListener('selectstart', function(e){ e.preventDefault(); }, {capture:true});
+  document.addEventListener('dragstart', function(e){
+    var t=e.target&&e.target.tagName; if(t==='IMG'||t==='VIDEO'||t==='SOURCE') e.preventDefault();
+  }, {capture:true});
+  document.addEventListener('keydown', function(e){
+    var k=(e.key||'').toLowerCase(), meta=e.ctrlKey||e.metaKey;
+    if(e.key==='F12' ||
+       (meta&&e.shiftKey&&(k==='i'||k==='j'||k==='c')) ||
+       (meta&&k==='u') || (meta&&k==='s')){
+      e.preventDefault(); e.stopPropagation();
+    }
+  }, {capture:true});
+  try{
+    console.log('%cSTOP.', 'color:#29b6ff;font-weight:700;font-size:20px');
+    console.log('%cParadigme STK protégé au titre de la propriété intellectuelle. © 2026 STK Multidynamics.',
+                'color:#9fc6d6;font-size:13px');
+  }catch(_){}
+})();
+</script>
+</body>
+</html>

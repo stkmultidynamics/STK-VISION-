@@ -1,0 +1,181 @@
+/* ═══════════════════════════════════════════════════════ */
+/* EFFET CINÉMA — séquence d'ouverture                     */
+/* ═══════════════════════════════════════════════════════ */
+
+/* --wipe : avancée de l'effacement (0% = scène pleine, 130% = effacée) */
+@property --wipe { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+
+.cine {
+    --wipe: 0%;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #000;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.75s ease;
+    /* le bord de fuite (droite) se dissout en transparence → pas un « rectangle » plein */
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - var(--wipe)), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 calc(100% - var(--wipe)), transparent 100%);
+}
+.cine.done { opacity: 0; pointer-events: none; }
+/* repli (sans GSAP) : la scène glisse vers la gauche + s'efface en transparence */
+.cine.slide-out {
+    transition: transform 0.7s cubic-bezier(0.7, 0, 0.2, 1), --wipe 0.7s ease;
+    transform: translateX(-100%);
+    --wipe: 130%;
+    pointer-events: none;
+}
+
+#cine-warp {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* barres letterbox (haut/bas) */
+.cine-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 14vh;
+    background: #000;
+    z-index: 2;
+    transition: transform 0.6s cubic-bezier(0.7, 0, 0.3, 1);
+}
+.cine-bar-top { top: 0; transform: translateY(-100%); }
+.cine-bar-bottom { bottom: 0; transform: translateY(100%); }
+.cine.bars .cine-bar-top,
+.cine.bars .cine-bar-bottom { transform: translateY(0); }
+.cine.retract .cine-bar-top { transform: translateY(-100%); }
+.cine.retract .cine-bar-bottom { transform: translateY(100%); }
+
+/* centre : mark + titre + tagline */
+.cine-center { position: relative; z-index: 3; text-align: center; padding: 0 20px; }
+
+.cine-hex {
+    font-size: clamp(48px, 8vw, 80px);
+    color: #00d9ff;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0.3);
+    filter: drop-shadow(0 0 30px rgba(0, 217, 255, 0.9));
+    animation: cine-hex 1s 0.8s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+}
+@keyframes cine-hex { to { opacity: 1; transform: scale(1); } }
+
+.cine-title {
+    font-size: clamp(40px, 9vw, 112px);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin: 8px 0 0;
+    color: #eafdff;
+    opacity: 0;
+    filter: blur(16px);
+    transform: translateY(22px);
+    text-shadow: 0 0 32px rgba(0, 217, 255, 0.45);
+    animation: cine-title 1.1s 1.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.cine-title span { color: #00d9ff; }
+@keyframes cine-title { to { opacity: 1; filter: blur(0); transform: none; } }
+
+.cine-tag {
+    color: #8fd3e0;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    font-size: clamp(10px, 1.4vw, 14px);
+    margin-top: 16px;
+    opacity: 0;
+    animation: cine-fade 1s 2.1s ease forwards;
+}
+@keyframes cine-fade { to { opacity: 0.95; } }
+
+/* trait de balayage horizontal sous le titre */
+.cine-rule {
+    width: 0;
+    height: 1px;
+    margin: 18px auto 0;
+    background: linear-gradient(90deg, transparent, #00d9ff, transparent);
+    opacity: 0;
+    animation: cine-rule 1.1s 1.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes cine-rule { to { width: min(420px, 70vw); opacity: 0.9; } }
+
+.cine-skip {
+    position: absolute;
+    bottom: 7vh;
+    right: 6vw;
+    z-index: 4;
+    background: transparent;
+    border: 1px solid rgba(0, 217, 255, 0.4);
+    color: #8fd3e0;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0;
+    animation: cine-fade 0.6s 1.2s ease forwards;
+}
+.cine-skip:hover { border-color: #00d9ff; color: #00d9ff; }
+
+/* vidéo d'intro (assets/intro2.mp4) — léger étalonnage pour la profondeur */
+.cine-video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 1;
+    filter: contrast(1.03) saturate(1.06);
+}
+
+/* voile cinéma : vignette + grain animé (améliore la qualité perçue) */
+.cine-vignette {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background:
+        radial-gradient(120% 100% at 50% 42%, transparent 52%, rgba(2, 5, 14, 0.55) 100%),
+        linear-gradient(180deg, rgba(0, 217, 255, 0.05) 0%, transparent 22%);
+}
+.cine-vignette::after {
+    content: ""; position: absolute; inset: -50%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.05; mix-blend-mode: overlay;
+    animation: cine-grain 0.5s steps(3) infinite;
+}
+@keyframes cine-grain {
+    0% { transform: translate(0, 0); }
+    33% { transform: translate(-6%, 3%); }
+    66% { transform: translate(4%, -5%); }
+    100% { transform: translate(-3%, 2%); }
+}
+
+/* canvas de transition de sortie (shader fluide) */
+#cine-transition {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    z-index: 5; pointer-events: none; opacity: 0;
+}
+
+/* flash blanc du saut vitesse-lumière */
+.cine-flash {
+    position: absolute; inset: 0; z-index: 6; pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, #fff 0%, #cfeeff 40%, transparent 75%);
+    opacity: 0;
+}
+
+/* bouton d'entrée */
+.cine-enter {
+    display: inline-block; margin-top: 28px;
+    font-family: inherit; font-weight: 700; font-size: 14px; letter-spacing: 0.12em;
+    color: #02040b; background: linear-gradient(92deg, #00d9ff, #5ad1ff);
+    border: none; border-radius: 12px; padding: 13px 32px; cursor: pointer;
+    box-shadow: 0 0 28px rgba(0, 217, 255, 0.5);
+    opacity: 0; transform: translateY(10px);
+    animation: cine-rise 0.8s 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.cine-enter:hover { box-shadow: 0 0 42px rgba(0, 217, 255, 0.85); }
+@keyframes cine-rise { to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .cine { display: none !important; }
+}

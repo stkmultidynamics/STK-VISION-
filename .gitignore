@@ -1,0 +1,7 @@
+# Ne jamais publier de code de démo / secrets
+demo/
+*.stk
+*.wasm
+**/src-*/
+**/target/
+*.orig.mp4
